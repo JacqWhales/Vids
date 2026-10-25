@@ -1,0 +1,12 @@
+{
+  "name": "never-have-i-ever-summit-edition",
+  "private": true,
+  "description": "A South Park-style cutout cartoon, animated entirely in code.",
+  "scripts": {
+    "voices": "tools/get-voices.sh",
+    "timeline": "node src/timeline.js",
+    "audio": "node src/audio.js",
+    "render": "node src/render.js",
+    "build": "node src/timeline.js && node src/audio.js && node src/render.js"
+  }
+}

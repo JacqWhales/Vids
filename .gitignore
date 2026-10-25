@@ -1,0 +1,5 @@
+build/
+out/
+voices/*.onnx
+voices/*.onnx.json
+node_modules/
