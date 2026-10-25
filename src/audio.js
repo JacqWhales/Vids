@@ -146,6 +146,17 @@ const sfx = {
     addInto(out, timpani(), len(1.0), 0.9);
     return out;
   },
+  buzz: () => sweep(110, 105, 0.6, 1.5, 'square').map((v, i, a) => v * Math.min(1, (a.length - i) / 400)),
+  whoosh: () => {
+    const out = noiseBurst(0.35, 0, 0.7);
+    return out.map((v, i) => v * Math.sin(Math.PI * i / out.length) * 0.8);
+  },
+  canOpen: () => addInto(sweep(3000, 2500, 0.02, 8), lowpass(noiseBurst(0.3, 6), 0.6), len(0.01), 0.7),
+  sip: () => {
+    const out = new Float32Array(len(0.9));
+    for (let k = 0; k < 3; k++) addInto(out, lowpass(noiseBurst(0.18, 3, 0.5), 0.15), len(k * 0.26), 0.6);
+    return addInto(out, sweep(300, 180, 0.12, 6), len(0.8), 0.4);
+  },
   titleJingle: () => guitarRiff([[55, 59, 62, 67], [48, 52, 55, 60, 64], [50, 54, 57, 62], [55, 59, 62, 67]], 5.6),
   endJingle: () => guitarRiff([[48, 52, 55, 60, 64], [50, 54, 57, 62], [55, 59, 62, 67]], 6.0),
 };
@@ -183,6 +194,22 @@ const music = {
     }
     return out;
   },
+  // Spaghetti-western standoff: a lonely whistle over a slow, low guitar. An original tune.
+  whistle(dur) {
+    const out = new Float32Array(len(dur + 1));
+    const beat = 60 / 66;
+    const melody = [[76, 1.5], [81, 0.5], [76, 1], [74, 0.5], [72, 0.5], [74, 3], [76, 1.5], [79, 0.5], [77, 1], [76, 0.5], [74, 0.5], [69, 3]];
+    let t = 0;
+    for (let rep = 0; t < dur; rep++) {
+      for (const [m, b] of melody) {
+        if (t >= dur) break;
+        addInto(out, whistleNote(midi(m), b * beat), len(t), 0.35);
+        t += b * beat;
+      }
+    }
+    for (let k = 0; k * 2 * beat < dur; k++) addInto(out, pluck(midi(k % 2 ? 40 : 45), 2.2, 0.998, 0.6), len(k * 2 * beat), 0.45);
+    return out;
+  },
   // The gentle "I learned something today" acoustic arpeggio.
   learned(dur) {
     const out = new Float32Array(len(dur + 2));
@@ -215,6 +242,18 @@ function saxNote(freq, dur) {
   return out;
 }
 
+function whistleNote(freq, dur) {
+  const out = new Float32Array(len(dur));
+  let ph = 0;
+  for (let i = 0; i < out.length; i++) {
+    const t = i / SR;
+    ph += TAU * freq * (1 + 0.012 * Math.sin(TAU * 5.5 * t) * Math.min(1, t / 0.25)) / SR;
+    const env = Math.min(1, t / 0.06) * Math.min(1, (dur - t) / 0.1);
+    out[i] = (Math.sin(ph) + noise() * 0.03) * env;
+  }
+  return out;
+}
+
 function pad(freq, dur) {
   const out = new Float32Array(len(dur));
   for (let i = 0; i < out.length; i++) {
@@ -226,7 +265,7 @@ function pad(freq, dur) {
 }
 
 const SFX_GAIN = { thunk: 0.5, pop: 0.5, tick: 0.35, clock: 0.35, slap: 0.9, squeak: 0.8, beep: 0.45, error: 0.7,
-  twinkle: 0.7, slide: 0.6, titleJingle: 0.9, endJingle: 0.8, newsJingle: 0.8, sting: 0.9, slam: 0.9 };
+  twinkle: 0.7, slide: 0.6, buzz: 0.5, whoosh: 0.6, canOpen: 0.6, sip: 0.8, titleJingle: 0.9, endJingle: 0.8, newsJingle: 0.8, sting: 0.9, slam: 0.9 };
 
 function mix(plan, outFile) {
   const n = len(plan.duration);
@@ -252,7 +291,7 @@ function mix(plan, outFile) {
       const t = i / SR;
       bed[i] *= i >= stop ? 0 : Math.min(1, t / 0.4, (stop / SR - t) / fade);
     }
-    place(bed, m.start, m.name === 'sax' ? 0.55 : 0.45);
+    place(bed, m.start, { sax: 0.55, whistle: 0.5 }[m.name] || 0.45);
   }
   // Gentle soft-clip so stacked hits never wrap around.
   const pcm = Buffer.alloc(n * 4);

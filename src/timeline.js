@@ -82,10 +82,15 @@ function build() {
   const speech = [];
   const subs = [];
   const clips = [];
+  const panels = [];
+  let shot = 'wide';
+  let scene = 'disclaimer';
   let t = 0.5;
 
   for (const b of beats) {
     const start = t;
+    shot = b.shot || shot;
+    scene = b.scene || scene;
     let audioDur = 0;
     if (b.scene) raw.push({ t: start, ev: { set: { scene: b.scene } } });
     if (b.shot) raw.push({ t: start, ev: { set: { shot: b.shot } } });
@@ -102,6 +107,9 @@ function build() {
     for (const e of b.do || []) raw.push({ t: start + (e.at || 0), ev: e });
     for (const e of b.then || []) raw.push({ t: start + audioDur + (e.at || 0), ev: e });
     t = start + audioDur + (b.hold || 0) + (b.pause ?? (b.say ? DEFAULT_PAUSE : 0));
+    const at = b.panelAt ?? (b.say ? Math.max(0, audioDur * 0.7) : audioDur * 0.6);
+    panels.push({ n: panels.length + 1, start: round(start), end: round(t), at: round(start + Math.min(at, t - start - 0.02)),
+      scene, shot, who: b.say ? [].concat(b.say).join(' + ') : '', text: b.text || '', note: b.note || '' });
   }
   const duration = t + 0.5;
 
@@ -152,6 +160,7 @@ function build() {
     fx,
     speech: speech.map(s => ({ ...s, start: round(s.start), dur: round(s.dur) })),
     subs: subs.map(s => ({ ...s, start: round(s.start), end: round(s.end) })),
+    panels,
   };
   const audio = { duration, clips, sfx, music };
   fs.writeFileSync(path.join(BUILD, 'timeline.json'), JSON.stringify(timeline));

@@ -230,7 +230,7 @@ from v1; anything unmarked is kept. Target runtime is about the same (~4 min).
 
 *The argument escalates fast, with quick cuts between the four of them:*
 
-**TRUMP:** I have the most fingers. I put them back up. Four times. A record.
+**TRUMP:** I have the most fingers. I put them back up. Twice. Nobody's ever done it twice.
 
 **PUTIN:** Is not who has fingers. Is who counts fingers.
 
@@ -268,7 +268,7 @@ from v1; anything unmarked is kept. Target runtime is about the same (~4 min).
 
 *Four-way split screen of state TV.*
 
-**PATRIOT NEWS:** President Trump wins by the biggest margin in history, after putting his fingers back up a record four times!
+**PATRIOT NEWS:** President Trump wins by the biggest margin in history, after putting his fingers back up a record two times!
 
 **KREMLIN 24:** Putin wins, with ninety-nine point nine percent of fingers. Moderator unavailable for comment.
 

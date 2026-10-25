@@ -13,6 +13,7 @@ play Never Have I Ever at a Geneva summit while Gary, a nervous UN moderator, tr
 | Sound | `src/audio.js` | Synthesized sound effects and music (guitar stings, sax, news jingle) and the mix |
 | Picture | `renderer/` | Canvas renderer: characters, room, title cards, state TV split screen |
 | Video | `src/render.js` | Drives the renderer in headless Chromium, encodes with ffmpeg |
+| Storyboard | `src/storyboard.js` | Animatic (held panels with sound) and a printable PDF storyboard |
 
 ## Build
 
@@ -21,6 +22,12 @@ Needs Node 18+, Python 3, ffmpeg, Playwright's Chromium and `pip install piper-t
 ```sh
 npm run voices          # download the Piper voices (~500 MB)
 npm run build           # -> out/never-have-i-ever.mp4 and out/never-have-i-ever.srt
+```
+
+Storyboard version (one held frame per beat, much faster than a full render):
+
+```sh
+npm run storyboard      # -> out/animatic.mp4 and out/storyboard.pdf
 ```
 
 While iterating:

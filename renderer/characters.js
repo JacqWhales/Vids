@@ -183,6 +183,7 @@ function putinHead(st) {
 
 function bear(t) {
   const blink = (t % 4.3) < 0.12;
+  const cover = S('bearCover', t);
   ell(-42, -48, 20, 20, '#7a4b2a');
   ell(42, -48, 20, 20, '#7a4b2a');
   ell(-42, -48, 10, 10, '#c8a07a', null);
@@ -199,6 +200,20 @@ function bear(t) {
     ell(22, -10, 6, 7, INK, null);
     ell(-20, -12, 2, 2, '#fff', null);
     ell(24, -12, 2, 2, '#fff', null);
+  }
+  if (cover) {
+    ell(-24, -10, 24, 20, '#6a3f22');
+    ell(24, -10, 24, 20, '#6a3f22');
+    for (const x of [-34, -24, -14, 14, 24, 34]) ell(x, -24, 5, 5, '#c8a07a', null);
+  }
+  if (S('bearSweat', t)) {
+    for (const [k, x] of [[0, 54], [0.45, -56]]) {
+      const p = (t * 0.9 + k) % 1;
+      const y = -30 + p * 60;
+      ctx.globalAlpha = 1 - p;
+      path(c => { c.moveTo(x, y - 12); c.quadraticCurveTo(x + 8, y, x, y + 4); c.quadraticCurveTo(x - 8, y, x, y - 12); }, '#8fd3ff', INK, 2);
+      ctx.globalAlpha = 1;
+    }
   }
 }
 
@@ -315,7 +330,7 @@ function honeyPot() {
 // ---- Gary ---------------------------------------------------------------------------------------
 
 function garyBody(st) {
-  const shirt = st.gary === 2 ? '#c6e0b4' : '#bcd3ea';
+  const shirt = { 1: '#bcd3ea', 2: '#c6e0b4', 3: '#f3e3a0' }[st.gary] || '#bcd3ea';
   path(c => {
     c.moveTo(-30, 92);
     c.quadraticCurveTo(-96, 98, -112, 170);
@@ -332,7 +347,7 @@ function garyBody(st) {
   rrect(-34, 192, 68, 44, 4, '#fff', INK, 3);
   ctx.fillStyle = '#1f5fbf';
   ctx.fillRect(-32, 194, 64, 10);
-  text(st.gary === 2 ? 'GARY 2' : 'GARY', 0, 220, 15, INK, { weight: 900 });
+  text(st.gary > 1 ? `GARY ${st.gary}` : 'GARY', 0, 220, 15, INK, { weight: 900 });
 }
 
 function garyHead(st) {
@@ -357,6 +372,7 @@ function garyHead(st) {
   line([[-54, -46], [-14, -54]], INK, 4);
   line([[14, -54], [54, -46]], INK, 4);
   mouth(0, 58, 38, st.mouth, { wavy: true });
+  if (st.gary === 3) garyHelmet();
   for (const k of [0, 0.5]) {
     const p = ((st.t * 0.7 + k) % 1);
     const x = 66 + k * 10;
@@ -369,6 +385,17 @@ function garyHead(st) {
     }, '#8fd3ff', INK, 2);
     ctx.globalAlpha = 1;
   }
+}
+
+function garyHelmet() {
+  path(c => {
+    c.moveTo(-92, -40);
+    c.bezierCurveTo(-96, -150, 96, -150, 92, -40);
+    c.quadraticCurveTo(0, -62, -92, -40);
+  }, '#e53935');
+  for (const x of [-40, 0, 40]) rrect(x - 8, -122 + Math.abs(x) * 0.3, 16, 34, 6, '#1b1b1f', null);
+  line([[-86, -40], [-70, 40], [-30, 84]], INK, 4);
+  line([[86, -40], [70, 40], [30, 84]], INK, 4);
 }
 
 function podium() {
@@ -417,16 +444,31 @@ function handOffset(who, side, t) {
   return { dx: 0, dy: 0 };
 }
 
+function reachTarget(who, t) {
+  const to = S(`reachTo_${who}`, t);
+  const c = CHARS[who];
+  if (to === 'button') return { x: c.x + 6, y: TABLE_Y - 40 };
+  if (CHARS[to]) return { x: CHARS[to].x - 95, y: CHARS[to].y + 190 };
+  return null;
+}
+
 function drawHands(who, t) {
   const c = CHARS[who];
+  if (who === 'kim' && S('duck_kim', t) > 0.3) return;
   const n = S(`fingers_${who}`, t);
   const drop = since(`fingers_${who}`, t) < 0.2 ? 8 : 0;
   const scale = who === 'trump' ? 0.28 : 1;
   for (const side of [-1, 1]) {
     const up = side < 0 ? clamp(n, 0, 5) : clamp(n - 5, 0, 5);
     const off = handOffset(who, side, t);
-    const hx = c.x + side * 95 + off.dx;
-    const hy = c.y + 215 + drop + off.dy;
+    let hx = c.x + side * 95 + off.dx;
+    let hy = c.y + 215 + drop + off.dy;
+    const target = side > 0 && reachTarget(who, t);
+    const r = S(`reach_${who}`, t);
+    if (target && r > 0) {
+      hx = lerp(hx, target.x, r);
+      hy = lerp(hy, target.y, r);
+    }
     const sleeveTop = hy + 22 * scale;
     path(cx => {
       cx.moveTo(hx - 17, sleeveTop);
@@ -455,16 +497,23 @@ function charState(who, t) {
   return st;
 }
 
+function button(x, y, pressed) {
+  rrect(x - 30, y - 16, 60, 20, 4, '#3a3a40');
+  ell(x, y - 16 + (pressed ? 6 : 0), 22, 11, '#e53935', INK, 3);
+}
+
 function drawCharacter(who, t) {
   const c = CHARS[who];
   const st = charState(who, t);
   ctx.save();
-  ctx.translate(c.x, c.y);
+  ctx.translate(c.x, c.y + (who === 'kim' ? 340 * S('duck_kim', t) : 0));
+  if (who === 'gary' && st.gary === 3) ctx.translate(Math.sin(t * 47) * 2, 0);
   BODIES[who](st);
   // Bob the head while talking, on twos like a cheap cutout.
   const bob = st.mouth ? -5 * (Math.floor(t * 12) % 2) : 0;
   ctx.translate(0, bob);
   HEADS[who](st);
+  if ((who === 'gary' && S('garyCup', t)) || (who === 'xi' && S('xiSip', t))) teacup(26, 82, t);
   ctx.restore();
 }
 

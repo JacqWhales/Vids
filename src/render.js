@@ -31,11 +31,19 @@ async function openPage(browser, timeline) {
   return page;
 }
 
-async function frame(page, t) {
-  const data = await page.evaluate(t => {
-    window.renderFrame(t);
-    return document.getElementById('c').toDataURL('image/png');
-  }, t);
+async function frame(page, t, opts = {}, type = 'image/png', width = 1920) {
+  const data = await page.evaluate(([t, opts, type, width]) => {
+    window.renderFrame(t, opts);
+    let c = document.getElementById('c');
+    if (width < c.width) {
+      const small = document.createElement('canvas');
+      small.width = width;
+      small.height = Math.round(c.height * width / c.width);
+      small.getContext('2d').drawImage(c, 0, 0, small.width, small.height);
+      c = small;
+    }
+    return c.toDataURL(type, 0.85);
+  }, [t, opts, type, width]);
   return Buffer.from(data.slice(data.indexOf(',') + 1), 'base64');
 }
 
@@ -102,4 +110,6 @@ async function main() {
   console.log(outFile);
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+module.exports = { openPage, frame };
+
+if (require.main === module) main().catch(e => { console.error(e); process.exit(1); });

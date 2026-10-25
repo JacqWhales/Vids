@@ -23,7 +23,8 @@ const WORLD = { x0: -500, x1: 2420 };
 const DEFAULTS = {
   scene: 'disclaimer', shot: 'wide', hands: false, counterOn: false, counter: 0, caption: '',
   trolleyX: -500, trolleyOffer: false, censor: false, gary: 1, pink: false, hat: false, teaToGary: 0,
-  tvActive: -1, shake: 0,
+  tvActive: -1, shake: 0, button_xi: false, press: null, duck_kim: 0, bearCover: false, bearSweat: false,
+  letterbox: false, honeyX: 0, trolleyCargo: 'tea', coke: false, garyCup: false, xiSip: false,
 };
 
 // ---- Timeline state ---------------------------------------------------------------------------
@@ -43,7 +44,8 @@ function lastEvent(key, t) {
 
 function defaultFor(key) {
   if (key.startsWith('fingers_')) return 10;
-  if (key.startsWith('look_')) return null;
+  if (key.startsWith('look_') || key.startsWith('reachTo_')) return null;
+  if (key.startsWith('reach_')) return 0;
   return DEFAULTS[key];
 }
 
@@ -232,7 +234,12 @@ function cameraFor(t) {
   let cam = { cx: W / 2, cy: H / 2, s: 1 };
   const [kind, arg] = shot.split(':');
   if (kind === 'close') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + 110, s: 2.0 };
-  if (kind === 'hands') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + 215, s: 5 };
+  if (kind === 'hands') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + 225, s: 4.5 };
+  if (kind === 'eyes') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y - 6, s: 6.5 };
+  if (kind === 'pt') {
+    const [x, y, s] = arg.split(',').map(Number);
+    cam = { cx: x, cy: y, s };
+  }
   if (kind === 'two') {
     const [a, b] = arg.split(',');
     cam = { cx: (CHARS[a].x + CHARS[b].x) / 2, cy: 530, s: 1.55 };
@@ -259,7 +266,8 @@ function applyCamera(cam) {
 
 window.init = timeline => { TL = timeline; };
 
-window.renderFrame = t => {
+// opts.subs: draw subtitles (default true). opts.label: storyboard panel label in the corner.
+window.renderFrame = (t, opts = {}) => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.globalAlpha = 1;
   ctx.globalCompositeOperation = 'source-over';
@@ -270,7 +278,13 @@ window.renderFrame = t => {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (scene === 'room') roomOverlays(t);
   applyGrain();
-  if (scene === 'room' || scene === 'tv') drawSubtitle(t);
+  if ((scene === 'room' || scene === 'tv') && opts.subs !== false) drawSubtitle(t);
+  if (opts.label) {
+    ctx.font = '800 34px Inter';
+    const w = ctx.measureText(opts.label).width;
+    rrect(24, 24, w + 40, 58, 8, 'rgba(255,255,255,0.92)', INK, 4);
+    text(opts.label, 44, 54, 34, INK, { align: 'left' });
+  }
 };
 
 function drawSubtitle(t) {

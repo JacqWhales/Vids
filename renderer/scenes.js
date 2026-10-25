@@ -176,10 +176,21 @@ function table() {
 }
 
 function props(t) {
-  ctx.save();
-  ctx.translate(CHARS.xi.x, 708);
-  honeyPot();
-  ctx.restore();
+  const hx = S('honeyX', t);
+  if (hx < 400) {
+    ctx.save();
+    ctx.translate(CHARS.xi.x + hx, 708);
+    honeyPot();
+    ctx.restore();
+  }
+  if (S('hands', t)) {
+    const press = S('press', t);
+    for (const who of LEADERS) {
+      if (who === 'xi' && !S('button_xi', t)) continue;
+      button(CHARS[who].x, TABLE_Y + 6, press === who && since('press', t) < 0.4);
+    }
+  }
+  if (S('coke', t)) cokeCan(CHARS.trump.x - 160, TABLE_Y + 2);
   const p = S('teaToGary', t);
   LEADERS.forEach((who, i) => {
     const home = CHARS[who].x + 140;
@@ -199,6 +210,13 @@ function teacup(x, y, t) {
   ell(x, y - 26, 22, 5, '#9c6b3e', INK, 2);
   const s = Math.sin(t * 3) * 4;
   path(c => { c.moveTo(x - 6, y - 34); c.quadraticCurveTo(x - 14 + s, y - 46, x - 4, y - 58); }, null, 'rgba(255,255,255,0.8)', 3);
+}
+
+function cokeCan(x, y) {
+  rrect(x - 16, y - 50, 32, 52, 5, '#d8dbe0');
+  rrect(x - 16, y - 40, 32, 30, 0, '#e8e8ee', null);
+  text('DIET', x, y - 30, 10, '#c62828', { weight: 900 });
+  text('COLA', x, y - 18, 10, '#c62828', { weight: 900 });
 }
 
 function trolley(t) {
@@ -230,10 +248,13 @@ function trolley(t) {
     c.bezierCurveTo(10, 38, 36, 44, 48, 18);
     c.bezierCurveTo(40, 36, 20, 16, 0, 26);
   }, '#141414', null);
-  if (S('trolleyOffer', t)) {
+  mouth(0, 44, 30, mouthOpen('waiter', t));
+  const offer = S('trolleyOffer', t);
+  if (offer) {
     line([[60, 110], [150, 40], [210, -20]], '#18181c', 26);
     ell(210, -24, 16, 14, '#f2d2b6');
-    teacup(232, -32, t);
+    if (offer === 'coke') cokeCan(232, -20);
+    else teacup(232, -32, t);
   } else {
     line([[70, 120], [150, 190]], '#18181c', 26);
   }
@@ -246,17 +267,27 @@ function trolley(t) {
   rrect(-136, 840, 272, 18, 4, '#c9ced6');
   rrect(-126, 960, 252, 14, 4, '#c9ced6');
   for (const wx of [-118, 118]) ell(wx, 1022, 14, 14, '#333', INK, 3);
-  ell(-40, 800, 46, 40, '#e8e8ee');
-  path(c => { c.moveTo(-84, 790); c.quadraticCurveTo(-120, 760, -116, 744); }, null, INK, 9);
-  path(c => { c.moveTo(-84, 790); c.quadraticCurveTo(-120, 760, -116, 744); }, null, '#e8e8ee', 5);
-  rrect(-60, 752, 40, 12, 4, '#e8e8ee');
-  ell(-40, 748, 6, 6, '#e8e8ee', INK, 2);
-  teacup(50, 836, t);
-  teacup(105, 836, t + 1);
+  if (S('trolleyCargo', t) === 'coke') {
+    if (S('trolleyOffer', t) !== 'coke' && !S('coke', t)) cokeCan(0, 840);
+  } else {
+    ell(-40, 800, 46, 40, '#e8e8ee');
+    path(c => { c.moveTo(-84, 790); c.quadraticCurveTo(-120, 760, -116, 744); }, null, INK, 9);
+    path(c => { c.moveTo(-84, 790); c.quadraticCurveTo(-120, 760, -116, 744); }, null, '#e8e8ee', 5);
+    rrect(-60, 752, 40, 12, 4, '#e8e8ee');
+    ell(-40, 748, 6, 6, '#e8e8ee', INK, 2);
+    teacup(50, 836, t);
+    teacup(105, 836, t + 1);
+  }
   ctx.restore();
 }
 
 function roomOverlays(t) {
+  if (S('letterbox', t)) {
+    const k = Math.min(1, since('letterbox', t) / 0.5);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, 130 * k);
+    ctx.fillRect(0, H - 130 * k, W, 130 * k);
+  }
   if (S('pink', t)) {
     ctx.fillStyle = 'rgba(255,90,170,0.18)';
     ctx.fillRect(0, 0, W, H);
@@ -385,11 +416,11 @@ function region() {
 
 const STATIONS = [
   { name: 'PATRIOT NEWS', bg: '#173a7a', accent: '#c62828', headline: 'TRUMP WINS BIGLY', who: 'anchorUS',
-    ticker: 'BIGGEST MARGIN IN HISTORY ★ FINGERS: TREMENDOUS ★ NOBEL COMMITTEE UNDER INVESTIGATION ★' },
+    ticker: 'FINGERS BACK UP A RECORD TWO TIMES ★ NOBEL COMMITTEE UNDER INVESTIGATION ★ DIET COLA STOCKS SOAR ★' },
   { name: 'KREMLIN 24', bg: '#5a1a22', accent: '#1e4fa8', headline: 'PUTIN: 99.9% OF FINGERS', who: 'anchorRU',
-    ticker: 'WINDOW SAFETY WEEK CONTINUES ★ BEAR APPROVAL AT RECORD HIGH ★ TEA PRICES STABLE ★' },
-  { name: 'PARTY NEWS 1', bg: '#a8141a', accent: '#f2c230', headline: 'NO GAME OCCURRED', who: 'anchorCN',
-    ticker: 'NOTHING HAPPENED TODAY ★ NOTHING HAPPENED IN 1989 EITHER ★ HONEY EXPORTS UP ★' },
+    ticker: 'MODERATOR UNAVAILABLE FOR COMMENT ★ WINDOW SAFETY WEEK CONTINUES ★ TEA PRICES STABLE ★' },
+  { name: 'PARTY NEWS 1', bg: '#a8141a', accent: '#f2c230', headline: 'NO GAME. NO SQUARE. NO GARY.', who: 'anchorCN',
+    ticker: 'NOTHING HAPPENED TODAY ★ NOTHING HAPPENED IN 1989 EITHER ★ HONEY SEIZED ★' },
   { name: 'GLORIOUS TV', bg: '#3f7fbf', accent: '#ff5fa2', headline: 'MARSHAL KIM: 11 HOLES-IN-ONE', who: 'anchorKP',
     ticker: 'MARSHAL KIM ALSO INVENTED FINGERS ★ HAIRCUT NOW MANDATORY FOR GARYS ★' },
 ];
@@ -492,16 +523,20 @@ function endcard(t) {
   text('No world leaders were harmed in the making of this video.', W / 2, 340, 48, '#fff', { weight: 800 });
   text('Several Garys were.', W / 2, 420, 64, '#fdd835', { font: 'Marker', weight: 400 });
   ctx.globalAlpha = 1;
-  [1, 2, 3].forEach((n, i) => {
+  [1, 2, 3, 4].forEach((n, i) => {
     const p = clamp((t - t0 - 1.6 - i * 0.35) / 0.4, 0, 1);
     if (p <= 0) return;
-    const x = W / 2 + (i - 1) * 300;
+    const x = W / 2 + (i - 1.5) * 300;
     const y = 700 + (1 - easeOutBack(p)) * 300;
-    drawHead('gary', x, y, 1.1, { t, gary: n, look: { dx: 0, dy: 0 } });
+    if (n < 4) drawHead('gary', x, y, 1.1, { t, gary: n, look: { dx: 0, dy: 0 } });
+    else {
+      ell(x, y, 86, 114, '#0f2418', '#cfe8d6', 4);
+      text('?', x, y + 6, 120, '#cfe8d6', { font: 'Bangers', weight: 400 });
+    }
     rrect(x - 70, y + 140, 140, 48, 6, '#fff', INK, 3);
     text(`GARY ${n}`, x, y + 165, 28, INK, { weight: 900 });
   });
-  if (t - t0 > 3.2) text('Gary 3 starts Monday.', W / 2, 1010, 34, '#cfe8d6', { weight: 600 });
+  if (t - t0 > 3.4) text('Gary 4 starts Monday.', W / 2, 1010, 34, '#cfe8d6', { weight: 600 });
 }
 
 function room(t) {
@@ -521,4 +556,4 @@ function room(t) {
   trolley(t);
 }
 
-const SCENES = { disclaimer, title, room, region, tv, endcard };
+const SCENES = { disclaimer, title, room, region, tv, endcard, black: () => paperBackground('#000') };
