@@ -26,6 +26,7 @@ async function openPage(browser, timeline) {
   await page.evaluate(async tl => {
     await document.fonts.load('400 40px Marker');
     await document.fonts.load('400 40px Bangers');
+    await document.fonts.load("700 30px 'Comic Neue'");
     window.init(tl);
   }, timeline);
   return page;

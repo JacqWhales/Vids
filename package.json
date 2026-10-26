@@ -8,6 +8,7 @@
     "audio": "node src/audio.js",
     "render": "node src/render.js",
     "build": "node src/timeline.js && node src/audio.js && node src/render.js",
-    "storyboard": "node src/timeline.js && node src/audio.js && node src/storyboard.js"
+    "storyboard": "node src/timeline.js && node src/audio.js && node src/storyboard.js",
+    "webtoon": "node src/timeline.js && node src/webtoon.js"
   }
 }

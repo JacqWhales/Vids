@@ -14,6 +14,7 @@ play Never Have I Ever at a Geneva summit while Gary, a nervous UN moderator, tr
 | Picture | `renderer/` | Canvas renderer: characters, room, title cards, state TV split screen |
 | Video | `src/render.js` | Drives the renderer in headless Chromium, encodes with ffmpeg |
 | Storyboard | `src/storyboard.js` | Animatic (held panels with sound) and a printable PDF storyboard |
+| Webtoon | `src/webtoon.js`, `renderer/webtoon.js` | The storyboard as a vertical-scroll comic, sliced for WEBTOON |
 
 ## Build
 
@@ -30,6 +31,12 @@ Storyboard version (one held frame per beat, much faster than a full render):
 npm run storyboard      # -> out/animatic.mp4 and out/storyboard.pdf
 ```
 
+Vertical-scroll comic version (WEBTOON style: speech bubbles, lettered sound effects):
+
+```sh
+npm run webtoon         # -> out/webtoon/webtoon.html (scrolling preview) and 800x1280 slices for upload
+```
+
 While iterating:
 
 ```sh
@@ -39,4 +46,4 @@ node src/render.js --from 90 --to 110     # a short preview clip
 
 To change a joke, edit `src/episode.js` and rebuild; only new or changed lines are re-voiced.
 
-Fonts: Permanent Marker (Apache 2.0) and Bangers (SIL OFL), in `renderer/fonts/`.
+Fonts: Permanent Marker (Apache 2.0), Bangers and Comic Neue (SIL OFL), in `renderer/fonts/`.

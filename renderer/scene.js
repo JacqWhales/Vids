@@ -19,6 +19,8 @@ const CHARS = {
 const TABLE_Y = 730;
 const WINDOW = { x: 40, y: 110, w: 260, h: 420 };
 const WORLD = { x0: -500, x1: 2420 };
+// Close-up framing; the vertical storyboard swaps in a looser one with headroom for portrait crops.
+const CLOSE_FRAMING = { s: 2.0, dy: 110 };
 
 const DEFAULTS = {
   scene: 'disclaimer', shot: 'wide', hands: false, counterOn: false, counter: 0, caption: '',
@@ -233,7 +235,7 @@ function cameraFor(t) {
   shot = shot.replace('+push', '');
   let cam = { cx: W / 2, cy: H / 2, s: 1 };
   const [kind, arg] = shot.split(':');
-  if (kind === 'close') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + 110, s: 2.0 };
+  if (kind === 'close') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + CLOSE_FRAMING.dy, s: CLOSE_FRAMING.s };
   if (kind === 'hands') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y + 225, s: 4.5 };
   if (kind === 'eyes') cam = { cx: CHARS[arg].x, cy: CHARS[arg].y - 6, s: 6.5 };
   if (kind === 'pt') {

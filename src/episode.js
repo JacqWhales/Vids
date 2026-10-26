@@ -10,6 +10,7 @@
 //   then:  events fired when the beat's audio ends.
 //   hold:  extra seconds after the audio before `then` fires.  pause: gap after the beat (default 0.3).
 //   note:  stage direction, shown on the storyboard.  panelAt: seconds into the beat to grab its panel.
+//   narr:  narration box for the vertical (webtoon) storyboard.
 //
 // An event may combine any of:
 //   set/tween   set renderer state keys, optionally tweened over `tween` seconds
@@ -175,7 +176,7 @@ const beats = [
   { say: 'waiter', text: 'Tea, sir?', do: [{ set: { trolleyOffer: 'tea' } }] },
   { say: 'gary', shot: 'close:gary', text: 'Oh! Sure, thanks!', then: [{ set: { trolleyOffer: false, garyCup: true } }] },
   { shot: 'wide', wait: 1.9, do: [{ look: { all: 'gary' } }, { at: 0.5, sfx: 'sip' }],
-    note: 'He takes a sip. Everyone watches him in total silence.', panelAt: 1.2 },
+    note: 'He takes a sip. Everyone watches him in total silence.', panelAt: 1.2, narr: 'Total silence.' },
   { scene: 'black', wait: 1.2, note: 'CUT TO BLACK.',
     then: [{ set: { gary: 3, garyCup: false, trolleyX: -500, trolleyCargo: 'tea' }, look: { all: null } }] },
   { scene: 'room', shot: 'close:gary', say: 'gary', text: 'I\'m Gary. Please don\'t ask about the other Garys.',
@@ -198,7 +199,7 @@ const beats = [
 
   // ---- Round 7: Trump, the Nobel ------------------------------------------------------------------
   { say: 'trump', shot: 'close:trump', text: 'Never have I ever been robbed of a Nobel Peace Prize.' },
-  { shot: 'wide', wait: 1.3, note: 'Nobody moves.' },
+  { shot: 'wide', wait: 1.3, note: 'Nobody moves.', narr: 'Nobody moves.' },
   { say: 'trump', shot: 'close:trump', text: 'Rigged! I ended eight wars! Nine! Some were very small!',
     note: 'Slams his own finger down. The table shakes.', then: [{ finger: 'trump' }, { set: { shake: 1 }, sfx: 'slam' }] },
   { shot: 'wide', wait: 3.4, do: [{ look: { all: 'window' } }, { fx: 'obama', dur: 3.4 }, { at: 1.4, sfx: 'twinkle' }],
@@ -229,7 +230,8 @@ const beats = [
   { shot: 'eyes:xi', wait: 0.9 },
   { shot: 'pt:305,660,3.2', wait: 1.1, do: [{ set: { bearSweat: true } }], note: 'The bear is sweating.' },
   { shot: 'pt:1760,150,3.6', wait: 1.0, do: [{ sfx: 'clock', dur: 1.0, gain: 2 }], note: 'The clock ticks. Loud.' },
-  { shot: 'hands:trump', wait: 1.2, note: 'Trump\'s button is still the Diet Coke button. He doesn\'t seem to know.' },
+  { shot: 'hands:trump', wait: 1.2, note: 'Trump\'s button is still the Diet Coke button. He doesn\'t seem to know.',
+    narr: 'It\'s still the Diet Coke button.' },
   { say: 'gary', shot: 'close:gary', text: 'WAIT!',
     then: [{ stopMusic: 'whistle', set: { letterbox: false } }] },
 
@@ -238,7 +240,7 @@ const beats = [
   { say: 'gary', text: 'We came here to talk about trade, and nuclear weapons, and human rights.' },
   { say: 'gary', text: 'But maybe the real weapons of mass destruction... were the friends we made along the way.',
     hold: 1.0, then: [{ stopMusic: 'learned' }] },
-  { shot: 'wide', wait: 2.6, panelAt: 2.4, note: 'Long silence. One by one, they take their hands off their buttons.',
+  { shot: 'wide', wait: 2.6, panelAt: 2.4, note: 'Long silence. One by one, they take their hands off their buttons.', narr: 'One by one...',
     do: [reach('xi', 0, 0.3, 0.6), reach('kim', 0, 0.9, 0.6), reach('putin', 0, 1.5, 0.6), reach('trump', 0, 2.0, 0.5)] },
   { shot: 'wide', wait: 2.2, do: [{ at: 0.3, set: { teaToGary: 1 }, tween: 1.4 }, { at: 0.3, sfx: 'slide', dur: 1.4 }],
     note: 'Then all four slide their teacups toward Gary at the same time.', panelAt: 2.0 },
