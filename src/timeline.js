@@ -6,7 +6,7 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 const { ROOT, BUILD, OUT, TTS_DIR, episode } = require('./paths');
 
-const { cast, beats, leaders, setting, titleCard, endCard } = episode();
+const { cast, beats, leaders, setting, titleCard, endCard, pause } = episode();
 const SR = 48000;
 const ENV_FPS = 24;
 const DEFAULT_PAUSE = 0.3;
@@ -105,7 +105,7 @@ function build() {
     }
     for (const e of b.do || []) raw.push({ t: start + (e.at || 0), ev: e });
     for (const e of b.then || []) raw.push({ t: start + audioDur + (e.at || 0), ev: e });
-    t = start + audioDur + (b.hold || 0) + (b.pause ?? (b.say ? DEFAULT_PAUSE : 0));
+    t = start + audioDur + (b.hold || 0) + (b.pause ?? (b.say ? pause ?? DEFAULT_PAUSE : 0));
     const at = b.panelAt ?? (b.say ? Math.max(0, audioDur * 0.7) : audioDur * 0.6);
     panels.push({ n: panels.length + 1, start: round(start), end: round(t), at: round(start + Math.min(at, t - start - 0.02)),
       scene, shot, who: b.say ? [].concat(b.say).join(' + ') : '', text: b.text || '', note: b.note || '' });
