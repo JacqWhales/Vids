@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { readClip, SR } = require('./timeline');
+const { BUILD } = require('./paths');
 
 const TAU = Math.PI * 2;
 const len = sec => Math.max(1, Math.ceil(sec * SR));
@@ -157,9 +158,37 @@ const sfx = {
     for (let k = 0; k < 3; k++) addInto(out, lowpass(noiseBurst(0.18, 3, 0.5), 0.15), len(k * 0.26), 0.6);
     return addInto(out, sweep(300, 180, 0.12, 6), len(0.8), 0.4);
   },
+  rip: () => {
+    const out = new Float32Array(len(0.45));
+    let gate = 0;
+    for (let i = 0; i < out.length; i++) {
+      if (i % 240 === 0) gate = rand() < 0.6 ? 1 : 0.2;
+      out[i] = noise() * gate * (1 - i / out.length);
+    }
+    return lowpass(out, 0.45);
+  },
+  gulp: () => addInto(sweep(320, 110, 0.2, 3), sweep(180, 260, 0.08, 4), len(0.18), 0.6),
+  ding: () => addInto(sweep(1320, 1320, 1.0, 5), sweep(2640, 2640, 0.8, 7), 0, 0.5),
+  holidayJingle: () => {
+    const out = guitarRiff([[60, 64, 67, 72], [65, 69, 72, 77], [67, 71, 74, 79], [60, 64, 67, 72]], 4.8);
+    for (let k = 0; k * 0.2875 < 4.3; k++) addInto(out, sleighBell(), len(k * 0.2875), k % 2 ? 0.18 : 0.28);
+    return out;
+  },
   titleJingle: () => guitarRiff([[55, 59, 62, 67], [48, 52, 55, 60, 64], [50, 54, 57, 62], [55, 59, 62, 67]], 5.6),
   endJingle: () => guitarRiff([[48, 52, 55, 60, 64], [50, 54, 57, 62], [55, 59, 62, 67]], 6.0),
 };
+
+function sleighBell() {
+  const out = new Float32Array(len(0.18));
+  const partials = [3100, 4700, 6300, 7900].map(f => [f * (0.98 + rand() * 0.04), rand() * TAU]);
+  for (let i = 0; i < out.length; i++) {
+    const t = i / SR;
+    let v = noise() * 0.3;
+    for (const [f, ph] of partials) v += Math.sin(TAU * f * t + ph) * 0.25;
+    out[i] = v * Math.exp(-t * 28);
+  }
+  return out;
+}
 
 // Down-down-up-up-down strumming through the chords, then a final ring.
 function guitarRiff(chords, dur) {
@@ -265,7 +294,7 @@ function pad(freq, dur) {
 }
 
 const SFX_GAIN = { thunk: 0.5, pop: 0.5, tick: 0.35, clock: 0.35, slap: 0.9, squeak: 0.8, beep: 0.45, error: 0.7,
-  twinkle: 0.7, slide: 0.6, buzz: 0.5, whoosh: 0.6, canOpen: 0.6, sip: 0.8, titleJingle: 0.9, endJingle: 0.8, newsJingle: 0.8, sting: 0.9, slam: 0.9 };
+  twinkle: 0.7, slide: 0.6, rip: 0.7, gulp: 0.8, ding: 0.6, holidayJingle: 0.9, buzz: 0.5, whoosh: 0.6, canOpen: 0.6, sip: 0.8, titleJingle: 0.9, endJingle: 0.8, newsJingle: 0.8, sting: 0.9, slam: 0.9 };
 
 function mix(plan, outFile) {
   const n = len(plan.duration);
@@ -318,7 +347,7 @@ function mix(plan, outFile) {
 module.exports = { mix };
 
 if (require.main === module) {
-  const plan = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'build', 'audio-plan.json')));
-  mix(plan, path.join(__dirname, '..', 'build', 'mix.wav'));
-  console.log('wrote build/mix.wav');
+  const plan = JSON.parse(fs.readFileSync(path.join(BUILD, 'audio-plan.json')));
+  mix(plan, path.join(BUILD, 'mix.wav'));
+  console.log(`wrote ${path.join(BUILD, 'mix.wav')}`);
 }

@@ -4,11 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
-const { cast, beats, leaders } = require('./episode');
+const { ROOT, BUILD, OUT, TTS_DIR, episode } = require('./paths');
 
-const ROOT = path.join(__dirname, '..');
-const BUILD = path.join(ROOT, 'build');
-const TTS_DIR = path.join(BUILD, 'tts');
+const { cast, beats, leaders, setting, titleCard, endCard } = episode();
 const SR = 48000;
 const ENV_FPS = 24;
 const DEFAULT_PAUSE = 0.3;
@@ -36,6 +34,7 @@ function voiceJobs() {
 
 function synthesize() {
   fs.mkdirSync(TTS_DIR, { recursive: true });
+  fs.mkdirSync(BUILD, { recursive: true });
   const jobs = voiceJobs();
   const pending = jobs.filter(j => !fs.existsSync(j.out));
   if (!pending.length) return;
@@ -156,6 +155,9 @@ function build() {
 
   const timeline = {
     duration: round(duration),
+    setting: setting || 'summit',
+    titleCard: titleCard || null,
+    endCard: endCard || null,
     state,
     fx,
     speech: speech.map(s => ({ ...s, start: round(s.start), dur: round(s.dur) })),
@@ -165,8 +167,8 @@ function build() {
   const audio = { duration, clips, sfx, music };
   fs.writeFileSync(path.join(BUILD, 'timeline.json'), JSON.stringify(timeline));
   fs.writeFileSync(path.join(BUILD, 'audio-plan.json'), JSON.stringify(audio, null, 1));
-  fs.mkdirSync(path.join(ROOT, 'out'), { recursive: true });
-  fs.writeFileSync(path.join(ROOT, 'out', 'never-have-i-ever.srt'), srt(timeline.subs));
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(path.join(OUT, 'episode.srt'), srt(timeline.subs));
   return { timeline, audio };
 }
 

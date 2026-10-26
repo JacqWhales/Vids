@@ -1,21 +1,21 @@
 // Vertical-scroll (WEBTOON-style) storyboard: one strip block per beat, stitched into
-//   out/webtoon/webtoon.html   the whole episode as one scrolling page (self-contained)
-//   out/webtoon/NNN.jpg        800x1280 slices, the format WEBTOON uploads take
+//   out/<episode>/webtoon/webtoon.html   the whole episode as one scrolling page (self-contained)
+//   out/<episode>/webtoon/NNN.jpg        800x1280 slices, the format WEBTOON uploads take
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { chromium } = require('playwright');
 const { openPage } = require('./render');
-const { beats } = require('./episode');
+const { ROOT, BUILD, OUT, episode } = require('./paths');
 
-const ROOT = path.join(__dirname, '..');
-const BUILD = path.join(ROOT, 'build');
+const { beats } = episode();
 const DIR = path.join(BUILD, 'webtoon');
 
 const ONOMATOPOEIA = {
   buzz: 'BZZZT!', slap: 'SMACK!', squeak: 'SQUEAK SQUEAK', beep: 'BEEEEEP', scratch: 'SCRRRATCH!', slam: 'SLAM!',
   pop: 'POP!', twinkle: 'TING!', stamp: 'THUNK!', sip: 'SLUUURP', canOpen: 'PSSHHT!', error: 'BWOMP',
   sting: 'DUN DUN DUNNN', whoosh: 'WHOOSH!', slide: 'SHHHK', clock: 'TICK... TOCK...',
+  rip: 'RRRIP!', gulp: 'GULP', ding: 'DING!',
 };
 const MUSIC = { sax: '~ SMOOTH SAX ~', whistle: '~ WHISTLING ~', learned: '~ SOFT GUITAR ~' };
 
@@ -58,7 +58,7 @@ async function main() {
   await browser.close();
   console.log(`composed ${manifest.length} blocks`);
   fs.writeFileSync(path.join(DIR, 'manifest.json'), JSON.stringify(manifest));
-  const out = path.join(ROOT, 'out', 'webtoon');
+  const out = path.join(OUT, 'webtoon');
   execFileSync('python3', [path.join(ROOT, 'tools', 'stitch_webtoon.py'), path.join(DIR, 'manifest.json'), out], { stdio: 'inherit' });
 }
 

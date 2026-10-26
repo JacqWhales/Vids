@@ -46,7 +46,7 @@ function lastEvent(key, t) {
 
 function defaultFor(key) {
   if (key.startsWith('fingers_')) return 10;
-  if (key.startsWith('look_') || key.startsWith('reachTo_')) return null;
+  if (key.startsWith('look_') || key.startsWith('reachTo_') || key.startsWith('face_')) return null;
   if (key.startsWith('reach_')) return 0;
   return DEFAULTS[key];
 }

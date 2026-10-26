@@ -7,7 +7,7 @@ play Never Have I Ever at a Geneva summit while Gary, a nervous UN moderator, tr
 
 | Step | File | What it does |
 | --- | --- | --- |
-| Script | `src/episode.js` | Every beat: dialogue, camera shots, finger counts, gags, sound cues |
+| Script | `episodes/*.js` | Every beat: dialogue, camera shots, expressions, gags, sound cues |
 | Voices | `tools/tts.py` | Piper neural TTS, a voice and pitch per character (cached in `build/tts`) |
 | Timeline | `src/timeline.js` | Times each beat from the voice lengths, builds mouth-flap envelopes and captions |
 | Sound | `src/audio.js` | Synthesized sound effects and music (guitar stings, sax, news jingle) and the mix |
@@ -16,34 +16,46 @@ play Never Have I Ever at a Geneva summit while Gary, a nervous UN moderator, tr
 | Storyboard | `src/storyboard.js` | Animatic (held panels with sound) and a printable PDF storyboard |
 | Webtoon | `src/webtoon.js`, `renderer/webtoon.js` | The storyboard as a vertical-scroll comic, sliced for WEBTOON |
 
+## Episodes
+
+Each episode is a file in `episodes/` (beats, shots, gags, sound cues); the voices are shared in
+`episodes/cast.js`. Pick one with `EPISODE=<name>`; outputs go to `out/<name>/`.
+
+| Episode | File |
+| --- | --- |
+| 1. Never Have I Ever | `episodes/ep1-never-have-i-ever.js` (default) |
+| 2. Secret Santa | `episodes/ep2-secret-santa.js` |
+
+The workflow is webtoon first (cheap to iterate on the script and staging), then the full video.
+
 ## Build
 
 Needs Node 18+, Python 3, ffmpeg, Playwright's Chromium and `pip install piper-tts`.
 
 ```sh
 npm run voices          # download the Piper voices (~500 MB)
-npm run build           # -> out/never-have-i-ever.mp4 and out/never-have-i-ever.srt
+npm run build           # -> out/<episode>/episode.mp4 and episode.srt
 ```
 
 Storyboard version (one held frame per beat, much faster than a full render):
 
 ```sh
-npm run storyboard      # -> out/animatic.mp4 and out/storyboard.pdf
+npm run storyboard      # -> out/<episode>/animatic.mp4 and storyboard.pdf
 ```
 
 Vertical-scroll comic version (WEBTOON style: speech bubbles, lettered sound effects):
 
 ```sh
-npm run webtoon         # -> out/webtoon/webtoon.html (scrolling preview) and 800x1280 slices for upload
+EPISODE=ep2-secret-santa npm run webtoon   # -> out/<episode>/webtoon/webtoon.html and 800x1280 slices
 ```
 
 While iterating:
 
 ```sh
-node src/render.js --stills 30,90,143     # PNG stills at those seconds -> out/stills/
+node src/render.js --stills 30,90,143     # PNG stills at those seconds -> out/<episode>/stills/
 node src/render.js --from 90 --to 110     # a short preview clip
 ```
 
-To change a joke, edit `src/episode.js` and rebuild; only new or changed lines are re-voiced.
+To change a joke, edit the episode file and rebuild; only new or changed lines are re-voiced.
 
 Fonts: Permanent Marker (Apache 2.0), Bangers and Comic Neue (SIL OFL), in `renderer/fonts/`.

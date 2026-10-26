@@ -1,16 +1,15 @@
 // Storyboard version of the episode: one held frame per beat.
-//   out/animatic.mp4     every panel held for its beat, with the voices, sound and subtitles
-//   out/storyboard.pdf   printable sheet: panels with shot, dialogue and stage directions
+//   out/<episode>/animatic.mp4     every panel held for its beat, with the voices, sound and subtitles
+//   out/<episode>/storyboard.pdf   printable sheet: panels with shot, dialogue and stage directions
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 const { chromium } = require('playwright');
 const { openPage, frame } = require('./render');
 
-const ROOT = path.join(__dirname, '..');
-const BUILD = path.join(ROOT, 'build');
+const { BUILD, OUT } = require('./paths');
+
 const DIR = path.join(BUILD, 'storyboard');
-const OUT = path.join(ROOT, 'out');
 
 const SPEAKERS = {
   trump: 'TRUMP', putin: 'PUTIN', kim: 'KIM', xi: 'XI', gary: 'GARY', waiter: 'WAITER',

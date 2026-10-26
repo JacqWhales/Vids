@@ -1,7 +1,7 @@
 // Renders the episode: drives the canvas renderer in headless Chromium, pipes frames to ffmpeg
 // in parallel chunks, then joins them with the mixed audio.
 //
-//   node src/render.js                 full video  -> out/never-have-i-ever.mp4
+//   node src/render.js                 full video  -> out/<episode>/episode.mp4
 //   node src/render.js --stills 12,40  PNG stills  -> out/stills/
 //   node src/render.js --from 60 --to 90   a preview clip of that range
 const fs = require('fs');
@@ -9,9 +9,7 @@ const path = require('path');
 const { spawn, execFileSync } = require('child_process');
 const { chromium } = require('playwright');
 
-const ROOT = path.join(__dirname, '..');
-const BUILD = path.join(ROOT, 'build');
-const OUT = path.join(ROOT, 'out');
+const { ROOT, BUILD, OUT } = require('./paths');
 const FPS = 24;
 
 function arg(name) {
@@ -103,7 +101,7 @@ async function main() {
 
   const list = path.join(BUILD, 'chunks.txt');
   fs.writeFileSync(list, chunks.map(c => `file '${c.file}'`).join('\n'));
-  const outFile = path.join(OUT, preview ? `preview-${from}-${to}.mp4` : 'never-have-i-ever.mp4');
+  const outFile = path.join(OUT, preview ? `preview-${from}-${to}.mp4` : 'episode.mp4');
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list,
     '-ss', String(from), '-t', String(to - from), '-i', path.join(BUILD, 'mix.wav'),
     '-map', '0:v', '-map', '1:a', '-c:v', 'copy', '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000',

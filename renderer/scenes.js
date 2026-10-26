@@ -15,14 +15,15 @@ function roomBackground(t) {
 
   // The banner, and the hasty correction taped under it.
   rrect(640, 22, 640, 66, 6, '#f3efe2');
-  text('INTERNATIONAL TRADE TALKS', 960, 56, 34, '#1d3b6e', { weight: 900 });
+  const holiday = TL.setting === 'holiday';
+  text(holiday ? 'INTERNATIONAL PEACE TALKS' : 'INTERNATIONAL TRADE TALKS', 960, 56, 34, '#1d3b6e', { weight: 900 });
   line([[690, 36], [1230, 76]], '#d32f2f', 8);
   line([[690, 76], [1230, 36]], '#d32f2f', 8);
   ctx.save();
   ctx.translate(960, 112);
   ctx.rotate(-0.03);
   rrect(-170, -24, 340, 50, 2, '#fff7a8', INK, 3);
-  text('PARTY GAMES!!', 0, 2, 38, '#c2185b', { font: 'Marker', weight: 400 });
+  text(holiday ? 'SECRET SANTA!!' : 'PARTY GAMES!!', 0, 2, 38, holiday ? '#2e7d32' : '#c2185b', { font: 'Marker', weight: 400 });
   ctx.fillStyle = 'rgba(240,240,220,0.8)';
   ctx.fillRect(-190, -30, 46, 18);
   ctx.fillRect(146, -30, 46, 18);
@@ -30,8 +31,42 @@ function roomBackground(t) {
 
   for (const who of LEADERS) flag(who, CHARS[who].x, 205);
   clock(1760, 150, t);
-  plant(130);
+  if (holiday) {
+    tree(130, t);
+    garland(t);
+  } else {
+    plant(130);
+  }
   windowView(t);
+}
+
+function garland(t) {
+  const colors = ['#e53935', '#fdd835', '#43a047', '#1e88e5'];
+  path(c => {
+    c.moveTo(WORLD.x0, 8);
+    for (let x = WORLD.x0; x < WORLD.x1; x += 160) c.quadraticCurveTo(x + 80, 64, x + 160, 8);
+  }, null, '#2e7d32', 12);
+  let i = 0;
+  for (let x = WORLD.x0 + 40; x < WORLD.x1; x += 80, i++) {
+    const k = (x - WORLD.x0) % 160;
+    const y = 8 + 56 * (1 - Math.pow((k - 80) / 80, 2)) * 0.55 + 6;
+    const on = (Math.floor(t * 2) + i) % 2 === 0;
+    ell(x, y, 8, 11, on ? colors[i % 4] : '#555', INK, 2);
+  }
+}
+
+function tree(x, t) {
+  rrect(x - 16, 960, 32, 50, 2, '#6d4c41');
+  rrect(x - 50, 1000, 100, 60, 4, '#c62828');
+  for (const [y, w] of [[980, 120], [880, 100], [790, 78], [710, 56]]) poly([[x - w, y], [x, y - 120], [x + w, y]], '#2e7d32');
+  const colors = ['#e53935', '#fdd835', '#1e88e5', '#fafafa'];
+  for (let i = 0; i < 12; i++) {
+    const oy = 720 + hash(i + 40) * 240;
+    const spread = (oy - 600) * 0.75;
+    const on = (Math.floor(t * 1.5) + i) % 3 !== 0;
+    ell(x + (hash(i + 70) - 0.5) * spread, oy, 9, 9, on ? colors[i % 4] : '#8a8a8a', INK, 2);
+  }
+  star(x, 598, 30, '#fdd835');
 }
 
 function flag(who, x, y) {
@@ -106,6 +141,13 @@ function windowView(t) {
   ctx.fillStyle = '#3d7fb8';
   ctx.fillRect(x, y + 330, w, h - 330);
   line([[x + 180, y + 335], [x + 180, y + 270]], '#e8f6ff', 5);
+  if (TL.setting === 'holiday') {
+    for (let i = 0; i < 34; i++) {
+      const fy = y + ((hash(i + 9) * h + t * 50 * (0.5 + hash(i + 3))) % h);
+      const fx = x + hash(i) * w + Math.sin(t * 1.5 + i) * 6;
+      ell(fx, fy, 4, 4, '#fff', null);
+    }
+  }
   const fall = activeFx('fallingMan', t);
   if (fall != null) fallingMan(x + w / 2 + Math.sin(fall * 9) * 20, y - 160 + fall * (h + 320), fall * 7);
   const ob = activeFx('obama', t);
@@ -177,7 +219,7 @@ function table() {
 
 function props(t) {
   const hx = S('honeyX', t);
-  if (hx < 400) {
+  if (hx < 400 && TL.setting !== 'holiday') {
     ctx.save();
     ctx.translate(CHARS.xi.x + hx, 708);
     honeyPot();
@@ -191,6 +233,15 @@ function props(t) {
     }
   }
   if (S('coke', t)) cokeCan(CHARS.trump.x - 160, TABLE_Y + 2);
+  const wrap = { putin: '#1e88e5', kim: '#8e24aa', trump: '#2e7d32', xi: '#e53935' };
+  for (const who of LEADERS) {
+    const g = S(`gift_${who}`, t);
+    if (g) giftBox(CHARS[who].x, TABLE_Y + 8, wrap[who], g);
+  }
+  for (const who of LEADERS) {
+    const item = S(`hold_${who}`, t);
+    if (item) heldItem(who, item, t);
+  }
   const p = S('teaToGary', t);
   LEADERS.forEach((who, i) => {
     const home = CHARS[who].x + 140;
@@ -382,16 +433,22 @@ function disclaimer(t) {
 
 function title(t) {
   const t0 = t - since('scene', t);
-  paperBackground('#2b6cb0');
-  for (let i = 0; i < 40; i++) star(hash(i) * W, hash(i + 7) * H, 6 + hash(i + 3) * 10, 'rgba(255,255,255,0.25)', null);
-  paperLetters('NEVER HAVE', W / 2, 250, 150, t0 + 0.2, t);
-  paperLetters('I EVER', W / 2, 430, 150, t0 + 0.75, t);
+  const card = TL.titleCard || { lines: ['NEVER HAVE', 'I EVER'], sub: 'SUMMIT EDITION' };
+  const holiday = TL.setting === 'holiday';
+  paperBackground(holiday ? '#b3202a' : '#2b6cb0');
+  for (let i = 0; i < 40; i++) {
+    const y = holiday ? (hash(i + 7) * H + (t - t0) * 60 * (0.5 + hash(i))) % H : hash(i + 7) * H;
+    if (holiday) ell(hash(i) * W, y, 5 + hash(i + 3) * 5, 5 + hash(i + 3) * 5, 'rgba(255,255,255,0.6)', null);
+    else star(hash(i) * W, y, 6 + hash(i + 3) * 10, 'rgba(255,255,255,0.25)', null);
+  }
+  paperLetters(card.lines[0], W / 2, 250, 150, t0 + 0.2, t);
+  paperLetters(card.lines[1], W / 2, 430, 150, t0 + 0.75, t);
   if (t - t0 > 1.7) {
     ctx.save();
     ctx.translate(W / 2, 590);
     ctx.rotate(-0.03);
     rrect(-330, -46, 660, 92, 4, '#111', '#fff', 4);
-    text('SUMMIT EDITION', 0, 4, 72, '#fdd835', { font: 'Bangers', weight: 400 });
+    text(card.sub, 0, 4, 72, '#fdd835', { font: 'Bangers', weight: 400 });
     ctx.restore();
   }
   const beat = Math.floor((t - t0) / 0.2875) % 2;
@@ -517,11 +574,12 @@ function tv(t) {
 function endcard(t) {
   const t0 = t - since('scene', t);
   paperBackground('#1f3d2b');
-  paperLetters('NEVER HAVE I EVER', W / 2, 170, 86, t0, t);
+  const card = TL.endCard || { title: 'NEVER HAVE I EVER', lines: ['No world leaders were harmed in the making of this video.', 'Several Garys were.'] };
+  paperLetters(card.title, W / 2, 170, 86, t0, t);
   const a = clamp((t - t0 - 0.9) / 0.6, 0, 1);
   ctx.globalAlpha = a;
-  text('No world leaders were harmed in the making of this video.', W / 2, 340, 48, '#fff', { weight: 800 });
-  text('Several Garys were.', W / 2, 420, 64, '#fdd835', { font: 'Marker', weight: 400 });
+  text(card.lines[0], W / 2, 340, 48, '#fff', { weight: 800 });
+  text(card.lines[1], W / 2, 420, 64, '#fdd835', { font: 'Marker', weight: 400 });
   ctx.globalAlpha = 1;
   [1, 2, 3, 4].forEach((n, i) => {
     const p = clamp((t - t0 - 1.6 - i * 0.35) / 0.4, 0, 1);
@@ -536,7 +594,7 @@ function endcard(t) {
     rrect(x - 70, y + 140, 140, 48, 6, '#fff', INK, 3);
     text(`GARY ${n}`, x, y + 165, 28, INK, { weight: 900 });
   });
-  if (t - t0 > 3.4) text('Gary 4 starts Monday.', W / 2, 1010, 34, '#cfe8d6', { weight: 600 });
+  if (t - t0 > 3.4 && !TL.endCard) text('Gary 4 starts Monday.', W / 2, 1010, 34, '#cfe8d6', { weight: 600 });
 }
 
 function room(t) {
@@ -544,7 +602,7 @@ function room(t) {
   roomBackground(t);
   missile();
   ctx.save();
-  ctx.translate(CHARS.putin.x - 215, 665);
+  ctx.translate(CHARS.putin.x - 215, S('bearShirt', t) ? 615 : 665);
   bear(t);
   ctx.restore();
   for (const who of LEADERS) drawCharacter(who, t);
@@ -553,6 +611,7 @@ function room(t) {
   table();
   props(t);
   podium();
+  if (S('hold_gary', t)) heldItem('gary', S('hold_gary', t), t);
   trolley(t);
 }
 

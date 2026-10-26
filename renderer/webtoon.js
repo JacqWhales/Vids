@@ -24,6 +24,7 @@ function speakerPoints(p) {
       const cam = cameraFor(p.at);
       if (CHARS[who]) pts.push(worldToScreen(cam, CHARS[who].x, CHARS[who].y - 30));
       if (who === 'waiter') pts.push(worldToScreen(cam, S('trolleyX', p.at) - 200, 620));
+      if (who === 'phone') pts.push(worldToScreen(cam, CHARS.kim.x, CHARS.kim.y + 110));
     }
   }
   return pts;
@@ -123,7 +124,7 @@ function narrationBox(str, x, y) {
 }
 
 function sfxLettering(words, l, py) {
-  const spots = [[0.72, 0.8, -0.12], [0.28, 0.42, 0.1], [0.7, 0.3, -0.06]];
+  const spots = [[0.72, 0.84, -0.12], [0.26, 0.86, 0.1], [0.76, 0.2, -0.06]];
   words.forEach((w, i) => {
     const [fx, fy, rot] = spots[i % spots.length];
     ctx.save();
